@@ -34,7 +34,36 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build APK
+      - name: - name: Fix Java and Kotlin JVM target
+  working-directory: project
+  run: |
+    python3 - <<'PY'
+    from pathlib import Path
+
+    p = Path("app/build.gradle.kts")
+    s = p.read_text()
+
+    if "kotlinOptions" not in s:
+        s = s.replace(
+            "android {",
+            """android {
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+"""
+        )
+
+    p.write_text(s)
+    PY
+
+- name: Build APK
+  working-directory: project
+  run: gradle assembleDebug
         working-directory: project
         run: gradle assembleDebug
 
